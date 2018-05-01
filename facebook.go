@@ -17,10 +17,16 @@ type FacebookRequest struct {
 			Message   *FacebookMessage  `json:"message,omitempty"`
 			Delivery  *FacebookDelivery `json:"delivery"`
 			Postback  *FacebookPostback `json:"postback"`
+			Optin  	  *FacebookOptin    `json:"optin"`
 		} `json:"messaging"`
 		Time int `json:"time"`
 	} `json:"entry"`
 	Object string `json:"object"`
+}
+
+//
+type FacebookOptin struct {
+	Ref  string `json:"ref"`
 }
 
 // FacebookMessage struct for text messaged received from facebook server as part of FacebookRequest struct

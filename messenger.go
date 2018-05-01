@@ -31,6 +31,9 @@ type Messenger struct {
 	// PostbackReceived event fires when postback received from Facebook server
 	// Omit (nil) if you don't use postbacks and you don't want to manage this events
 	PostbackReceived func(msng *Messenger, userID int64, p FacebookPostback)
+
+	//
+	OptinReceived func(msng *Messenger, userID int64, p FacebookOptin)
 }
 
 // New creates new messenger instance
@@ -89,6 +92,9 @@ func (msng *Messenger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			case msg.Postback != nil && msng.PostbackReceived != nil:
 				go msng.PostbackReceived(msng, userID, *msg.Postback)
+
+			case msg.Optin != nil && msng.OptinReceived != nil:
+				go msng.OptinReceived(msng, userID, *msg.Optin)
 			}
 		}
 	}
