@@ -18,6 +18,8 @@ type Messenger struct {
 	VerifyToken string
 	PageID      string
 
+	HttpClient *http.Client
+
 	apiURL  string
 	pageURL string
 
@@ -44,6 +46,15 @@ func New(accessToken, pageID string) Messenger {
 	}
 }
 
+//
+func (msng *Messenger) GetClient() *http.Client {
+	if msng.HttpClient == nil {
+		msng.HttpClient = &http.Client{}
+	}
+
+	return msng.HttpClient
+}
+
 // SendMessage sends chat message
 func (msng *Messenger) SendMessage(m Message) (FacebookResponse, error) {
 	if msng.apiURL == "" {
@@ -59,8 +70,7 @@ func (msng *Messenger) SendMessage(m Message) (FacebookResponse, error) {
 	req, err := http.NewRequest("POST", msng.apiURL, bytes.NewBuffer(s))
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := msng.HttpClient.Do(req)
 	if err != nil {
 		return FacebookResponse{}, err
 	}
