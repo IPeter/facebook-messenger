@@ -87,7 +87,6 @@ func (msng Messenger) SendTextMessage(receiverID int64, text string) (FacebookRe
 
 // ServeHTTP is HTTP handler for Messenger so it could be directly used as http.Handler
 func (msng *Messenger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	msng.VerifyWebhook(w, r)    // verify webhook if needed
 	fbRq, _ := DecodeRequest(r) // get FacebookRequest object
 
 	for _, entry := range fbRq.Entry {
@@ -95,19 +94,21 @@ func (msng *Messenger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			userID := msg.Sender.ID
 			switch {
 			case msg.Message != nil && msng.MessageReceived != nil:
-				go msng.MessageReceived(msng, userID, *msg.Message, r)
+				msng.MessageReceived(msng, userID, *msg.Message, r)
 
 			case msg.Delivery != nil && msng.DeliveryReceived != nil:
-				go msng.DeliveryReceived(msng, userID, *msg.Delivery, r)
+				msng.DeliveryReceived(msng, userID, *msg.Delivery, r)
 
 			case msg.Postback != nil && msng.PostbackReceived != nil:
-				go msng.PostbackReceived(msng, userID, *msg.Postback, r)
+				msng.PostbackReceived(msng, userID, *msg.Postback, r)
 
 			case msg.Optin != nil && msng.OptinReceived != nil:
-				go msng.OptinReceived(msng, userID, *msg.Optin, r)
+				msng.OptinReceived(msng, userID, *msg.Optin, r)
 			}
 		}
 	}
+
+	msng.VerifyWebhook(w, r)
 }
 
 // VerifyWebhook verifies your webhook by checking VerifyToken and sending challange back to Facebook
