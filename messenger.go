@@ -24,18 +24,18 @@ type Messenger struct {
 	pageURL string
 
 	// MessageReceived event fires when message from Facebook received
-	MessageReceived func(msng *Messenger, userID int64, m FacebookMessage)
+	MessageReceived func(msng *Messenger, userID int64, m FacebookMessage, r *http.Request)
 
 	// DeliveryReceived event fires when delivery report from Facebook received
 	// Omit (nil) if you don't want to manage this events
-	DeliveryReceived func(msng *Messenger, userI int64, d FacebookDelivery)
+	DeliveryReceived func(msng *Messenger, userI int64, d FacebookDelivery, r *http.Request)
 
 	// PostbackReceived event fires when postback received from Facebook server
 	// Omit (nil) if you don't use postbacks and you don't want to manage this events
-	PostbackReceived func(msng *Messenger, userID int64, p FacebookPostback)
+	PostbackReceived func(msng *Messenger, userID int64, p FacebookPostback, r *http.Request)
 
 	//
-	OptinReceived func(msng *Messenger, userID int64, p FacebookOptin)
+	OptinReceived func(msng *Messenger, userID int64, p FacebookOptin, r *http.Request)
 }
 
 // New creates new messenger instance
@@ -95,16 +95,16 @@ func (msng *Messenger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			userID := msg.Sender.ID
 			switch {
 			case msg.Message != nil && msng.MessageReceived != nil:
-				go msng.MessageReceived(msng, userID, *msg.Message)
+				go msng.MessageReceived(msng, userID, *msg.Message, r)
 
 			case msg.Delivery != nil && msng.DeliveryReceived != nil:
-				go msng.DeliveryReceived(msng, userID, *msg.Delivery)
+				go msng.DeliveryReceived(msng, userID, *msg.Delivery, r)
 
 			case msg.Postback != nil && msng.PostbackReceived != nil:
-				go msng.PostbackReceived(msng, userID, *msg.Postback)
+				go msng.PostbackReceived(msng, userID, *msg.Postback, r)
 
 			case msg.Optin != nil && msng.OptinReceived != nil:
-				go msng.OptinReceived(msng, userID, *msg.Optin)
+				go msng.OptinReceived(msng, userID, *msg.Optin, r)
 			}
 		}
 	}
