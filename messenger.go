@@ -24,18 +24,18 @@ type Messenger struct {
 	pageURL string
 
 	// MessageReceived event fires when message from Facebook received
-	MessageReceived func(msng *Messenger, userID int64, m FacebookMessage, r *http.Request)
+	MessageReceived func(msng *Messenger, userID int64, m FacebookMessage)
 
 	// DeliveryReceived event fires when delivery report from Facebook received
 	// Omit (nil) if you don't want to manage this events
-	DeliveryReceived func(msng *Messenger, userI int64, d FacebookDelivery, r *http.Request)
+	DeliveryReceived func(msng *Messenger, userI int64, d FacebookDelivery)
 
 	// PostbackReceived event fires when postback received from Facebook server
 	// Omit (nil) if you don't use postbacks and you don't want to manage this events
-	PostbackReceived func(msng *Messenger, userID int64, p FacebookPostback, r *http.Request)
+	PostbackReceived func(msng *Messenger, userID int64, p FacebookPostback)
 
 	//
-	OptinReceived func(msng *Messenger, userID int64, p FacebookOptin, r *http.Request)
+	OptinReceived func(msng *Messenger, userID int64, p FacebookOptin)
 }
 
 // New creates new messenger instance
@@ -70,7 +70,7 @@ func (msng *Messenger) SendMessage(m Message) (FacebookResponse, error) {
 	req, err := http.NewRequest("POST", msng.apiURL, bytes.NewBuffer(s))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := msng.HttpClient.Do(req)
+	resp, err := msng.GetClient().Do(req)
 	if err != nil {
 		return FacebookResponse{}, err
 	}
@@ -88,27 +88,26 @@ func (msng Messenger) SendTextMessage(receiverID int64, text string) (FacebookRe
 // ServeHTTP is HTTP handler for Messenger so it could be directly used as http.Handler
 func (msng *Messenger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fbRq, _ := DecodeRequest(r) // get FacebookRequest object
+	msng.VerifyWebhook(w, r)
 
 	for _, entry := range fbRq.Entry {
 		for _, msg := range entry.Messaging {
 			userID := msg.Sender.ID
 			switch {
 			case msg.Message != nil && msng.MessageReceived != nil:
-				msng.MessageReceived(msng, userID, *msg.Message, r)
+				go msng.MessageReceived(msng, userID, *msg.Message)
 
 			case msg.Delivery != nil && msng.DeliveryReceived != nil:
-				msng.DeliveryReceived(msng, userID, *msg.Delivery, r)
+				go msng.DeliveryReceived(msng, userID, *msg.Delivery)
 
 			case msg.Postback != nil && msng.PostbackReceived != nil:
-				msng.PostbackReceived(msng, userID, *msg.Postback, r)
+				go msng.PostbackReceived(msng, userID, *msg.Postback)
 
 			case msg.Optin != nil && msng.OptinReceived != nil:
-				msng.OptinReceived(msng, userID, *msg.Optin, r)
+				go msng.OptinReceived(msng, userID, *msg.Optin)
 			}
 		}
 	}
-
-	msng.VerifyWebhook(w, r)
 }
 
 // VerifyWebhook verifies your webhook by checking VerifyToken and sending challange back to Facebook

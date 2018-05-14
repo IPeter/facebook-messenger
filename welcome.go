@@ -62,7 +62,7 @@ func (msng *Messenger) setWelcome(m interface{}) error {
 	req, err := http.NewRequest("POST", msng.pageURL, bytes.NewBuffer(s))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := msng.HttpClient.Do(req)
+	resp, err := msng.GetClient().Do(req)
 	if err != nil {
 		return err
 	}
