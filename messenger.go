@@ -70,7 +70,7 @@ func (msng *Messenger) SendMessage(m Message) (FacebookResponse, error) {
 	req, err := http.NewRequest("POST", msng.apiURL, bytes.NewBuffer(s))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := msng.HttpClient.Do(req)
+	resp, err := msng.GetClient().Do(req)
 	if err != nil {
 		return FacebookResponse{}, err
 	}
