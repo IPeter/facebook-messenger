@@ -18,10 +18,17 @@ type FacebookRequest struct {
 			Delivery  *FacebookDelivery `json:"delivery"`
 			Postback  *FacebookPostback `json:"postback"`
 			Optin  	  *FacebookOptin    `json:"optin"`
+			Read	  *FacebookRead     `json:"read"`
 		} `json:"messaging"`
 		Time int `json:"time"`
 	} `json:"entry"`
 	Object string `json:"object"`
+}
+
+//
+type FacebookRead struct {
+	Watermark int `json:"watermark"`
+	Seq int `json:"seq"`
 }
 
 //
