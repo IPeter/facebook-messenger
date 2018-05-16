@@ -36,6 +36,9 @@ type Messenger struct {
 
 	//
 	OptinReceived func(msng *Messenger, userID int64, p FacebookOptin)
+
+	//
+	ReadReceived func(msng *Messenger, userID int64, p FacebookRead)
 }
 
 // New creates new messenger instance
@@ -105,6 +108,9 @@ func (msng *Messenger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			case msg.Optin != nil && msng.OptinReceived != nil:
 				go msng.OptinReceived(msng, userID, *msg.Optin)
+
+			case msg.Read != nil && msng.ReadReceived != nil:
+				go msng.ReadReceived(msng, userID, *msg.Read)
 			}
 		}
 	}
